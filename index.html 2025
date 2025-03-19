@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلب محصول شخصي</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+            text-align: right;
+            background-color: #f9f9f9;
+        }
+
+        .hero {
+            background: linear-gradient(to right, #f8e08e, #eac73f);
+            position: relative;
+            padding: 20px;
+        }
+
+        .hero-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hero-image {
+            width: 100px;
+            height: auto;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .field {
+            margin-bottom: 15px;
+        }
+
+        .message-box {
+            display: none;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .message-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .message-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+
+<section class="hero is-bold">
+    <div class="hero-body">
+        <h1 class="title">طلب محصول شخصي</h1>
+        <img src="https://lh3.googleusercontent.com/d/1AkT-RwRbToO2pS_nscfs4DOcz85KjmMj=w500" class="hero-image">
+    </div>
+</section>
+
+<div class="container">
+    <form id="form">
+        <div class="field">
+            <label class="label">الاسم</label>
+            <div class="control">
+                <input class="input" type="text" placeholder="اسمك الكامل" name="Client Name" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">الإيميل</label>
+            <div class="control">
+                <input class="input" type="email" placeholder="ايميل الشركة في حال توفره" name="Email">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">الرقم الوظيفي</label>
+            <div class="control">
+                <input class="input" type="text" placeholder="رقمك الوظيفي" name="EmployeeID" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="label">اختر المنتجات والعدد المطلوب</label>
+            <div id="products-container"></div>
+        </div>
+
+        <div class="field">
+            <label class="label">ملاحظات</label>
+            <div class="control">
+                <textarea class="textarea" placeholder="أدخل أي ملاحظات (500 حرف كحد أقصى)" name="Comment" maxlength="500"></textarea>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="control">
+                <button class="button is-primary" type="submit" id="submit-button">إرسال الطلب</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="message" class="message-box"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var productsContainer = document.getElementById("products-container");
+        var productOptions = ["أدهم", "شيلشلي", "سلفادور", "كولومبيا", "إثيوبيا", "كينيا"];
+
+        for (var i = 1; i <= 6; i++) {
+            var fieldDiv = document.createElement("div");
+            fieldDiv.classList.add("field");
+
+            var select = document.createElement("select");
+            select.name = "Product" + i;
+            select.classList.add("input");
+            select.innerHTML = '<option value="">اختر المنتج</option>' + productOptions.map(p => `<option value="${p}">${p}</option>`).join('');
+
+            var quantityInput = document.createElement("input");
+            quantityInput.classList.add("input");
+            quantityInput.type = "number";
+            quantityInput.placeholder = "عدد القطع";
+            quantityInput.name = "Quantity" + i;
+            quantityInput.min = "1";
+
+            fieldDiv.appendChild(select);
+            fieldDiv.appendChild(quantityInput);
+            productsContainer.appendChild(fieldDiv);
+        }
+    });
+
+    document.getElementById("form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        document.getElementById("message").textContent = "جاري الإرسال...";
+        document.getElementById("message").style.display = "block";
+        document.getElementById("submit-button").disabled = true;
+
+        var formData = new FormData(this);
+        var entries = [];
+
+        var orderNumber = Math.floor(1000000000 + Math.random() * 9000000000); // ✅ توليد رقم طلب فريد لكل طلب
+
+        for (var i = 1; i <= 6; i++) {
+            var product = formData.get("Product" + i);
+            var quantity = formData.get("Quantity" + i);
+
+            if (product && quantity) {
+                entries.push({
+                    "Client Name": formData.get("Client Name"),
+                    "Email": formData.get("Email"),
+                    "EmployeeID": formData.get("EmployeeID"),
+                    "Product": product,
+                    "Quantity": quantity,
+                    "Comment": formData.get("Comment") || "",
+                    "Order Number": orderNumber // ✅ إضافة رقم الطلب الموحد
+                });
+            }
+        }
+
+        fetch("https://script.google.com/macros/s/AKfycbxdkROw9xhp7RC7jZahZ9YQLxm11EI24jKZWKqh1qz50OfgCHacnbE1okpR8sLCuV6v/exec", { 
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(entries),
+            headers: { "Content-Type": "application/json" },
+        });
+
+        alert("مبروك تم إرسال الطلب! رقم طلبك: " + orderNumber);
+        document.getElementById("form").reset();
+    });
+</script>
+
+</body>
+</html>
+
